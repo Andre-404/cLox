@@ -62,6 +62,15 @@ static void printFunction(ObjFunction* function) {
 	printf("<fn %s>", function->name->chars);
 }
 
+static void printArray(ObjArray* arr) {
+	printf("[");
+	for (int i = 0; i < arr->count; i++) {
+		printValue(arr->values[i]);
+		if(i+1 < arr->count) printf(", ");
+	}
+	printf("]");
+}
+
 void printObject(Value value) {
 	switch (OBJ_TYPE(value)) {
 		case OBJ_STRING:
@@ -79,6 +88,7 @@ void printObject(Value value) {
 		case OBJ_UPVALUE:
 			printf("upvalue");
 			break;
+		case OBJ_ARRAY: printArray(AS_ARRAY(value)); break;
 	}
 
 }
@@ -127,4 +137,26 @@ ObjUpvalue* newUpvalue(Value* slot) {
 	upvalue->next = NULL;
 	upvalue->closed = NIL_VAL;
 	return upvalue;
+}
+
+ObjArray* newArray(uint8_t size) {
+	ObjArray* arr = ALLOCATE_OBJ(ObjArray, OBJ_ARRAY);
+	arr->count = 0;
+	arr->capacity = size;
+	arr->values = NULL;
+	push(OBJ_VAL(arr));
+	arr->values = GROW_ARRAY(Value, NULL, 0, size);
+	pop();
+	return arr;
+}
+
+void writeToArray(ObjArray* array, Value value) {
+	if (array->capacity < array->count + 1) {
+		int oldCapacity = array->capacity;
+		array->capacity = GROW_CAPACITY(oldCapacity);
+		array->values = GROW_ARRAY(Value, array->values, oldCapacity, array->capacity);
+	}
+
+	array->values[array->count] = value;
+	array->count++;
 }

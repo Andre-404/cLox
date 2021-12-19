@@ -10,7 +10,8 @@ typedef enum {
 	OBJ_NATIVE,
 	OBJ_STRING,
 	OBJ_CLOSURE,
-	OBJ_UPVALUE
+	OBJ_UPVALUE,
+	OBJ_ARRAY
 } ObjType;
 
 struct Obj {
@@ -55,6 +56,13 @@ typedef struct {
 	int upvalueCount;
 } ObjClosure;
 
+typedef struct {
+	Obj obj;
+	int capacity;
+	int count;
+	Value* values;
+} ObjArray;
+
 
 
 
@@ -68,12 +76,14 @@ static inline bool isObjType(Value value, ObjType type) {
 #define IS_FUNCTION(value)  isObjType(value, OBJ_FUNCTION)
 #define IS_NATIVE(value)    isObjType(value, OBJ_NATIVE)
 #define IS_CLOSURE(value)   isObjType(value, OBJ_CLOSURE)
+#define IS_ARRAY(value)		isObjType(value, OBJ_ARRAY)
 
 #define AS_FUNCTION(value)     ((ObjFunction*)AS_OBJ(value))
 #define AS_STRING(value)       ((ObjString*)AS_OBJ(value))
 #define AS_CSTRING(value)      (((ObjString*)AS_OBJ(value))->chars)
 #define AS_NATIVE(value)	   (((ObjNative*)AS_OBJ(value))->function)
 #define AS_CLOSURE(value)      ((ObjClosure*)AS_OBJ(value))
+#define AS_ARRAY(value)		   ((ObjArray*)AS_OBJ(value))
 
 ObjString* copyString(const char* chars, int length);
 void printObject(Value value);
@@ -83,6 +93,8 @@ ObjFunction* newFunction();
 ObjNative* newNative(NativeFn function);
 ObjClosure* newClosure(ObjFunction* function);
 ObjUpvalue* newUpvalue(Value* slot);
+ObjArray* newArray(uint8_t);
+void writeToArray(ObjArray* array, Value value);
 
 
 #endif

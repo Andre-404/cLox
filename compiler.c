@@ -285,6 +285,20 @@ static void call(bool canAssign) {
 	emitBytes(OP_CALL, argCount);
 }
 
+static void createArr(bool canAssign) {
+	uint8_t itemCount = 0;
+	if (!check(TOKEN_RIGHT_BRACKET)) {
+		do {
+			expression();
+			itemCount++;
+		} while (match(TOKEN_COMMA));
+	}
+	consume(TOKEN_RIGHT_BRACKET, "Expect ']' after array definition.");
+	emitBytes(OP_CREATE_ARRAY, itemCount);
+}
+
+
+
 //add constant to the constant pool of the chunk and return it's pos
 static uint8_t makeConstant(Value value) {
 	int constant = addConstant(currentChunk(), value);
@@ -315,7 +329,7 @@ static void parsePrecedence(Precedence precedence) {
 	//run the prefix rule(eg. push a number to a stack)
 	bool canAssign = precedence <= PREC_ASSIGNMENT;
 	prefixRule(canAssign);
-	//as long as the next token has either a higher or equal precedence, we continue eg. 1+2+3 - ok, (1+ 2)-stops at ')'('(' is consumed as a prefix
+	//as long as the next token has either a higher or equal precedence, we continue eg. 1+2+3 - ok, (1+ 2)-stops at ')' ('(' is consumed as a prefix
 	while (precedence <= getRule(parser.current.type)->precedence) {
 		advance();
 		ParseFn infixRule = getRule(parser.previous.type)->infix;
@@ -737,6 +751,18 @@ static void namedVariable(Token name, bool canAssign) {
 	}
 }
 
+static void accessArr(bool canAssign) {
+	expression();
+	consume(TOKEN_RIGHT_BRACKET, "Expect ']' after array access.");
+	if (canAssign && match(TOKEN_EQUAL)) {
+		expression();
+		emitByte(OP_ARRAY_SET);
+	}
+	else {
+		emitByte(OP_ARRAY_GET);
+	}
+}
+
 static void variable(bool canAssign) {
 	namedVariable(parser.previous, canAssign);
 }
@@ -746,6 +772,8 @@ ParseRule rules[] = {
   [TOKEN_RIGHT_PAREN] =		{NULL,     NULL,   PREC_NONE},
   [TOKEN_LEFT_BRACE] =		{NULL,     NULL,   PREC_NONE},
   [TOKEN_RIGHT_BRACE] =		{NULL,     NULL,   PREC_NONE},
+  [TOKEN_LEFT_BRACKET] =	{createArr,accessArr,   PREC_CALL},
+  [TOKEN_RIGHT_BRACKET] =	{NULL,     NULL,   PREC_NONE},
   [TOKEN_COMMA] =			{NULL,     NULL,   PREC_NONE},
   [TOKEN_DOT] =				{NULL,     NULL,   PREC_NONE},
   [TOKEN_MINUS] =			{unary,    binary, PREC_TERM},

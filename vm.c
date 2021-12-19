@@ -49,6 +49,22 @@ static Value* clockNative(int argCount, Value* args) {
     return &NUMBER_VAL((double)clock() / CLOCKS_PER_SEC);
 }
 
+static Value* arrayAppend(int argCount, Value* args) {
+    if (argCount != 2) {
+        runtimeError("Expected %d arguments but got %d.", 0, argCount);
+        return NULL;
+    }
+    Value valArr = args[0];
+    Value val = args[1];
+    if (!IS_ARRAY(valArr)) {
+        runtimeError("Trying to access a value that is not a array.");
+        return NULL;
+    }
+    ObjArray* arr = AS_ARRAY(valArr);
+    writeToArray(arr, val);
+    return &NIL_VAL;
+}
+
 static void defineNative(const char* name, NativeFn function) {
     push(OBJ_VAL(copyString(name, (int)strlen(name))));
     push(OBJ_VAL(newNative(function)));
@@ -72,6 +88,7 @@ void initVM() {
 
 
     defineNative("clock", clockNative);
+    defineNative("append", arrayAppend);
 }
 
 void freeVM() {
@@ -374,6 +391,59 @@ static InterpretResult run() {
                 closeUpvalues(vm.stackTop - 1);
                 pop();
                 break;
+            case OP_CREATE_ARRAY: {
+                uint8_t count = READ_BYTE();
+                ObjArray* arr = newArray(count);
+                for (int i = 0; i < count; i++) {
+                    arr->values[count - i - 1] = pop();
+                    arr->count++;
+                }
+                
+                push(OBJ_VAL(arr));
+                break;
+            }
+            case OP_ARRAY_GET: {
+                Value index = pop();
+                if (!IS_NUMBER(index)) {
+                    runtimeError("Index must be a number.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                Value arr = pop();
+                if (!IS_ARRAY(arr)) {
+                    runtimeError("Trying to access a type that isn't a array.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                ObjArray* Array = AS_ARRAY(arr);
+                double num = (double)AS_NUMBER(index);
+                if (num < 0 || num >= Array->count) {
+                    runtimeError("Index %d outside of range: 0-%d", (int)num, Array->count);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                push(Array->values[(int)num]);
+                break;
+            }
+            case OP_ARRAY_SET: {
+                Value val = pop();
+                Value index = pop();
+                if (!IS_NUMBER(index)) {
+                    runtimeError("Index must be a number.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                Value arr = pop();
+                if (!IS_ARRAY(arr)) {
+                    runtimeError("Trying to access a type that isn't a array.");
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                ObjArray* Array = AS_ARRAY(arr);
+                double num = (double)AS_NUMBER(index);
+                if (num < 0 || num >= Array->count) {
+                    runtimeError("Index %d outside of range: 0-%d", (int)num, Array->count);
+                    return INTERPRET_RUNTIME_ERROR;
+                }
+                Array->values[(int)num] = val;
+                push(val);
+                break;
+            }
         }
     }
 

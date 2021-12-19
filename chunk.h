@@ -35,6 +35,9 @@ typedef enum {
 	OP_CALL,
 	OP_RETURN,
 	OP_CLOSURE,
+	OP_CREATE_ARRAY,
+	OP_ARRAY_GET,
+	OP_ARRAY_SET
 }OpCode;
 
 //dynamic array
