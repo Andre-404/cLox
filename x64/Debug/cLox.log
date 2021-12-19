@@ -1,0 +1,14 @@
+﻿  chunk.c
+  compiler.c
+  debug.c
+  main.c
+C:\ProjektiAndrea\cLox\main.c(24,16): warning C4090: 'function': different 'const' qualifiers
+  memory.c
+  object.c
+  scanner.c
+  table.c
+  values.c
+  vm.c
+  Generating Code...
+C:\ProjektiAndrea\cLox\vm.c(49): warning C4172: returning address of local variable or temporary: $S1
+  cLox.vcxproj -> C:\ProjektiAndrea\cLox\x64\Debug\cLox.exe
