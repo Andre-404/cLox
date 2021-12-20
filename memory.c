@@ -67,6 +67,21 @@ static void freeObject(Obj* object) {
             FREE(ObjArray, object);
             break;
         }
+        case OBJ_CLASS: {
+            ObjClass* klass = (ObjClass*)object;
+            freeTable(&klass->methods);
+            FREE(ObjClass, object);
+            break;
+        }
+        case OBJ_INSTANCE: {
+            ObjInstance* instance = (ObjInstance*)object;
+            freeTable(&instance->fields);
+            FREE(ObjInstance, object);
+            break;
+        }
+        case OBJ_BOUND_METHOD:
+            FREE(ObjBoundMethod, object);
+            break;
     }
 }
 
@@ -95,6 +110,8 @@ static void markRoots() {
     for (ObjUpvalue* upvalue = vm.openUpvalues; upvalue != NULL; upvalue = upvalue->next) {
         markObject((Obj*)upvalue);
     }
+    markObject((Obj*)vm.initString);
+
 
     markCompilerRoots();
 }
@@ -157,6 +174,24 @@ static void blackenObject(Obj* object) {
             for (int i = 0; i < arr->count; i++) {
                 markValue(arr->values[i]);
             }
+        }
+        case OBJ_CLASS: {
+            ObjClass* klass = (ObjClass*)object;
+            markObject((Obj*)klass->name);
+            markTable(&klass->methods);
+            break;
+        }
+        case OBJ_INSTANCE: {
+            ObjInstance* instance = (ObjInstance*)object;
+            markObject((Obj*)instance->klass);
+            markTable(&instance->fields);
+            break;
+        }
+        case OBJ_BOUND_METHOD: {
+            ObjBoundMethod* bound = (ObjBoundMethod*)object;
+            markValue(bound->receiver);
+            markObject((Obj*)bound->method);//TOSTRING: this can stay
+            break;
         }
         case OBJ_NATIVE:
         case OBJ_STRING:

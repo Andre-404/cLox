@@ -89,6 +89,15 @@ void printObject(Value value) {
 			printf("upvalue");
 			break;
 		case OBJ_ARRAY: printArray(AS_ARRAY(value)); break;
+		case OBJ_CLASS:
+			printf("%s", AS_CLASS(value)->name->chars);
+			break;
+		case OBJ_INSTANCE:
+			printf("%s instance", AS_INSTANCE(value)->klass->name->chars);
+			break;
+		case OBJ_BOUND_METHOD:
+			printFunction(AS_BOUND_METHOD(value)->method->function);
+			break;
 	}
 
 }
@@ -148,6 +157,28 @@ ObjArray* newArray(uint8_t size) {
 	arr->values = GROW_ARRAY(Value, NULL, 0, size);
 	pop();
 	return arr;
+}
+
+ObjClass* newClass(ObjString* name) {
+	ObjClass* klass = ALLOCATE_OBJ(ObjClass, OBJ_CLASS);
+	klass->name = name;
+	initTable(&klass->methods);
+	//TOSTRING: add predefined methods here
+	return klass;
+}
+
+ObjInstance* newInstance(ObjClass* klass) {
+	ObjInstance* instance = ALLOCATE_OBJ(ObjInstance, OBJ_INSTANCE);
+	instance->klass = klass;
+	initTable(&instance->fields);
+	return instance;
+}
+//TOSTRING: this should be a Obj* and not a ObjClosure* to support native
+ObjBoundMethod* newBoundMethod(Value receiver, ObjClosure* method) {
+	ObjBoundMethod* bound = ALLOCATE_OBJ(ObjBoundMethod, OBJ_BOUND_METHOD);
+	bound->receiver = receiver;
+	bound->method = method;
+	return bound;
 }
 
 void writeToArray(ObjArray* array, Value value) {

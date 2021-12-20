@@ -1,6 +1,2 @@
 ﻿  object.c
-  vm.c
-  Generating Code...
-C:\ProjektiAndrea\cLox\vm.c(49): warning C4172: returning address of local variable or temporary: $S1
-C:\ProjektiAndrea\cLox\vm.c(65): warning C4172: returning address of local variable or temporary: $S2
   cLox.vcxproj -> C:\ProjektiAndrea\cLox\x64\Debug\cLox.exe

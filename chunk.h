@@ -5,7 +5,7 @@
 #include "value.h"
 
 //enums for different types of instructions
-typedef enum {
+typedef enum OpCode{
 	OP_CONSTANT,
 	OP_NIL,
 	OP_TRUE,
@@ -37,7 +37,12 @@ typedef enum {
 	OP_CLOSURE,
 	OP_CREATE_ARRAY,
 	OP_ARRAY_GET,
-	OP_ARRAY_SET
+	OP_ARRAY_SET,
+	OP_CLASS,
+	OP_GET_PROPERTY,
+	OP_SET_PROPERTY,
+	OP_METHOD,
+	OP_INVOKE,
 }OpCode;
 
 //dynamic array
