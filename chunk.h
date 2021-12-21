@@ -43,6 +43,9 @@ typedef enum OpCode{
 	OP_SET_PROPERTY,
 	OP_METHOD,
 	OP_INVOKE,
+	OP_SUPER_INVOKE,
+	OP_INHERIT,
+	OP_GET_SUPER,
 }OpCode;
 
 //dynamic array
