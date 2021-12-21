@@ -83,10 +83,10 @@ void initVM() {
     vm.grayStack = NULL;
     vm.bytesAllocated = 0;
     vm.nextGC = 1024 * 1024;
-    vm.initString = NULL;
-    vm.initString = copyString("init", 4);
     initTable(&vm.strings);
     initTable(&vm.globals);
+    vm.initString = NULL;
+    vm.initString = copyString("init", 4);
 
 
     defineNative("clock", clockNative);
@@ -151,6 +151,17 @@ static bool call(ObjClosure* closure, int argCount) {
     return true;
 }
 
+void printTable(Table* table) {
+    printf("-----------------------------------------");
+    for (int i = 0; i < table->capacity; i++) {
+        if(table->entries[i].key != NULL) printObject(OBJ_VAL(table->entries[i].key));
+        printf("  ");
+        printValue(table->entries[i].value);
+        printf("\n");
+    }
+    printf("-----------------------------------------");
+}
+
 static bool callValue(Value callee, int argCount) {
     if (IS_OBJ(callee)) {
         switch (OBJ_TYPE(callee)) {
@@ -165,6 +176,7 @@ static bool callValue(Value callee, int argCount) {
                 ObjClass* klass = AS_CLASS(callee);
                 vm.stackTop[-argCount - 1] = OBJ_VAL(newInstance(klass));
                 Value initializer;
+                printTable(&klass->methods);
                 if (tableGet(&klass->methods, vm.initString, &initializer)) {
                     return call(AS_CLOSURE(initializer), argCount);
                 }else if (argCount != 0) {

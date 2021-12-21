@@ -242,6 +242,7 @@ static void parsePrecedence(Precedence precedence);
 static void statement();
 static void declaration();
 static void varDeclaration();
+static void variable(bool canAssign);
 
 
 static void beginScope() {
@@ -877,9 +878,6 @@ static void accessArr(bool canAssign) {
 	}
 }
 
-static void variable(bool canAssign) {
-	namedVariable(parser.previous, canAssign);
-}
 
 static void this_(bool canAssign) {
 	if (currentClass == NULL) {
@@ -913,6 +911,11 @@ static void super_(bool canAssign) {
 		emitBytes(OP_GET_SUPER, name);
 	}
 }
+
+static void variable(bool canAssign) {
+	namedVariable(parser.previous, canAssign);
+}
+
 
 ParseRule rules[] = {
   [TOKEN_LEFT_PAREN] =		{grouping, call,   PREC_CALL},
